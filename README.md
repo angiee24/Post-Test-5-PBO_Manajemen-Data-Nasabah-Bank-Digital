@@ -1,11 +1,10 @@
-# Post Test 4-PBO Manajemen-Data-Nasabah-Bank-Digital
+# Post Test 5-PBO Manajemen-Data-Nasabah-Bank-Digital
 
 # Manajemen Data Nasabah Bank Digital
 
 Angela Caroline Budiman (2409116008)
 
 Sistem Informasi A'2024
-
 
 # Deskripsi
 Program ini merupakan sebuah program sederhana CRUD dengan tema Manajemen Data Nasabah Bank Digital. Melalui menu konsol yang interaktif, pengguna dapat melakukan operasi data nasabah secara lengkap, mulai dari menambah (Create), melihat (Read), mengubah (Update), hingga menghapus (Delete) data. Selain itu, program ini juga dilengkapi dengan fitur transaksi dasar seperti setor tunai, tarik tunai, dan transfer dana antar rekening, sehingga dapat menjadi simulasi sederhana dalam pengelolaan dan manajemen data nasabah bank secara digital.

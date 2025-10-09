@@ -320,9 +320,10 @@ Penggunaan anotasi @Override memastikan bahwa compiler memverifikasi bahwa signa
 Program ini berjalan dengan menampilkan sepuluh menu utama kepada pengguna. Opsi 1 sampai 4 digunakan untuk mengelola data dasar nasabah (tambah, lihat, ubah, hapus). Menu 5 membuka sub-menu untuk transaksi finansial, menu 6 berfungsi untuk melihat riwayat rekening, dan menu 7 digunakan untuk mencari data nasabah secara fleksibel. Menu 8 diterapkan untuk memberikan bonus bunga kepada nasabah prioritas, dan Menu 9 dirancang secara khusus untuk menampilkan laporan seluruh data nasabah menggunakan koneksi JDBC Murni. Program akan selalu kembali ke tampilan menu ini setelah setiap tugas selesai, hingga pengguna memilih Menu 10 untuk keluar dari aplikasi dan menutup koneksi database.
 
 
-<img width="372" height="322" alt="image" src="https://github.com/user-attachments/assets/d1b7dc74-b162-48cc-855a-b6aea122cf79" />
+<img width="574" height="617" alt="image" src="https://github.com/user-attachments/assets/966e83b6-bc25-43e4-ae17-4c8135669663" />
 
-Setiap input yang salah akan dianggap tidak valid untuk mencegah error ketika pengguna salah memasukkan data. Jika pengguna mengetik angka di luar rentang menu (misalnya 9), sistem akan menampilkan pesan "Pilihan harus antara 1 dan 8", sedangkan jika memasukkan karakter non-angka (misalnya a), sistem akan menampilkan pesan "Input tidak valid, masukkan angka!". Dengan validasi ini, program menjadi lebih aman, stabil, dan tetap berjalan meskipun terjadi kesalahan input dari pengguna.
+
+Setiap input yang salah akan dianggap tidak valid untuk mencegah error ketika pengguna salah memasukkan data. Jika pengguna mengetik angka di luar rentang menu (misalnya 11), sistem akan menampilkan pesan "Pilihan harus antara 1-10 ", sedangkan jika memasukkan karakter non-angka (misalnya b), sistem akan menampilkan pesan "Input tidak valid, masukkan angka!". Dengan validasi ini, program menjadi lebih aman, stabil, dan tetap berjalan meskipun terjadi kesalahan input dari pengguna.
 
 ## Menu Create (Tambah Nasabah)
 
@@ -413,7 +414,8 @@ Alur ini menunjukkan validasi saldo pada fitur Transfer Dana. Pengguna telah mem
 Setiap input nominal pada fitur transfer yang tidak berbentuk angka akan dianggap tidak valid agar transaksi tidak gagal. Misalnya pada menu Transfer Dana, jika pengguna mengetik teks seperti "seratus", sistem langsung menampilkan pesan "Input tidak valid, masukkan angka!" dan meminta ulang input. Setelah pengguna memasukkan jumlah yang benar (contoh: 100000), sistem memproses transaksi dengan sukses dan menampilkan pesan "Transfer berhasil."
 
 ### Kembali Ke Menu Utama
-<img width="377" height="275" alt="image" src="https://github.com/user-attachments/assets/8e7f34c9-cd43-40f1-8b3c-d92e8bf70aa3" />
+
+<img width="482" height="275" alt="image" src="https://github.com/user-attachments/assets/0972b1fb-64b1-4188-9a01-f34afd706d43" />
 
 Alur pada gambar ini menunjukkan cara pengguna kembali ke menu utama dari sub-menu transaksi. Setelah berada di dalam "Menu Transaksi", pengguna memilih opsi nomor 4 ("Kembali ke Menu Utama"). Program kemudian mengeksekusi perintah return untuk keluar dari fungsi menuTransaksi(), dan alur program langsung kembali menampilkan menu utama, siap menerima perintah selanjutnya.
 
@@ -425,16 +427,9 @@ Alur ini menunjukkan penanganan input yang tidak valid di dalam sub-menu transak
 
 ## Menu Mutasi (Lihat Mutasi Rekening)
 
-<img width="809" height="157" alt="image" src="https://github.com/user-attachments/assets/357158c4-f0e2-4f7f-a53f-14f2c83cf894" />
+<img width="1164" height="466" alt="image" src="https://github.com/user-attachments/assets/d2bd7ce6-6ad7-4ad4-9656-9794fe18217e" />
 
 Output mutasi ini memvalidasi keberhasilan integrasi Persistence Layer yang telah dimigrasikan. Saat pengguna memilih Menu 6, method lihatMutasiRekening() mengeksekusi kueri JPQL terhadap entitas TransaksiEntry untuk mengambil seluruh riwayat transaksi nasabah 2025001. Data yang ditampilkan membuktikan fungsionalitas transaksional penuh sistem, mencakup transaksi BUNGA (+Rp280,500), SETOR (+Rp100,000), TARIK (-Rp100,000), dan TRANSFER_KELUAR (termasuk biaya Rp0.0), yang semuanya tersimpan secara kronologis di database dan disajikan sebagai bukti log mutasi yang terstruktur.
-
-<img width="909" height="157" alt="image" src="https://github.com/user-attachments/assets/f703dbc2-6d65-4f3c-9ead-45f206b84f0c" />
-
-Output ini memperlihatkan pengguna memilih menu 6 untuk melihat mutasi rekening, lalu memasukkan nomor rekening 2025002. Program mengenali bahwa ini adalah rekening nasabah prioritas dan, sesuai dengan perubahan yang telah Anda buat, secara otomatis memotong biaya administrasi bulanan sebesar Rp3.000,00. Potongan ini terjadi karena ini adalah kali pertama mutasi rekening dilihat pada bulan September 2025. Setelah pemotongan, saldo awal yang tadinya Rp12.000.000,00 berkurang menjadi Rp11.997.000,00, dan mutasi tersebut dicatat dalam riwayat rekening nasabah.
-
-<img width="440" height="119" alt="image" src="https://github.com/user-attachments/assets/a81a8e3d-a015-4441-839e-d22da9b5091a" />
-
 Alur ini menunjukkan penanganan kesalahan saat pengguna mencoba melihat mutasi rekening dengan nomor yang tidak terdaftar. Ketika pengguna memasukkan nomor rekening yang tidak ada di dalam sistem (contoh: 2409116008), program akan gagal menemukan data yang cocok dan akan menampilkan pesan "GAGAL: Rekening tidak ditemukan." untuk menginformasikan pengguna.
 
 ## Menu Search (Cari Nasabah)

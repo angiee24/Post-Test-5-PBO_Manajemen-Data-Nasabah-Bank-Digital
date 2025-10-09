@@ -1,4 +1,4 @@
-# Post Test 4-PBO Manajemen-Data-Nasabah-Bank-Digital
+<img width="413" height="26" alt="image" src="https://github.com/user-attachments/assets/9cbb65c2-67f8-4dcd-ab5e-1be438b17c13" /># Post Test 4-PBO Manajemen-Data-Nasabah-Bank-Digital
 
 # Manajemen Data Nasabah Bank Digital
 
@@ -6,11 +6,12 @@ Angela Caroline Budiman (2409116008)
 
 Sistem Informasi A'2024
 
+
 # Deskripsi
 Program ini merupakan sebuah program sederhana CRUD dengan tema Manajemen Data Nasabah Bank Digital. Melalui menu konsol yang interaktif, pengguna dapat melakukan operasi data nasabah secara lengkap, mulai dari menambah (Create), melihat (Read), mengubah (Update), hingga menghapus (Delete) data. Selain itu, program ini juga dilengkapi dengan fitur transaksi dasar seperti setor tunai, tarik tunai, dan transfer dana antar rekening, sehingga dapat menjadi simulasi sederhana dalam pengelolaan dan manajemen data nasabah bank secara digital.
 
 # Alur Program
-Program ini berjalan dengan menampilkan sembilan menu utama kepada pengguna. Opsi 1 sampai 4 digunakan untuk mengelola data dasar nasabah (tambah, lihat, ubah, hapus). Menu 5 membuka sub-menu transaksi finansial, menu 6 dan 7 digunakan untuk melihat riwayat rekening dan mencari nasabah, menu 8 dipakai untuk memberikan bonus nasabah prioritas, dan menu 9 dipakai untuk keluar.
+Program ini berjalan dengan menampilkan sembilan menu utama kepada pengguna. Opsi 1 sampai 4 digunakan untuk mengelola data dasar nasabah (tambah, lihat, ubah, hapus). Menu 5 membuka sub-menu transaksi finansial, menu 6 dan 7 digunakan untuk melihat riwayat rekening dan mencari nasabah, menu 8 dipakai untuk memberikan bonus nasabah prioritas, menu 9 dipakai untuk menampilakan database langsung dari MYSQL, dan menu 10 dipakai untuk keluar.
 
 Setiap input yang bukan merupakan angka 1–9 akan dianggap tidak valid, lalu program secara otomatis mengarahkan kembali pengguna ke menu utama.
 
@@ -35,8 +36,187 @@ Menampilkan seluruh riwayat transaksi (mutasi) dari sebuah rekening berdasarkan 
 Mencari data nasabah secara fleksibel menggunakan input nama atau nomor rekening.
 8. Bonus Untuk Nasabah Prioritas
 Menambahkan bonus 2% dari saldo hanya untuk nasabah prioritas, lalu menampilkan besarnya bonus dan saldo terbaru sekaligus mencatatnya di mutasi rekening.
-9. Keluar (Exit)
+9. Tampilkan Laporan (JDBC)
+Menu ini dirancang untuk membaca data nasabah secara langsung dari database (MySQL) menggunakan driver JDBC Murni (java.sql.Statement dan ResultSet). Fungsinya adalah memverifikasi koneksi low-level ke database dan menampilkan daftar lengkap seluruh data nasabah yang tersimpan.
+10. Keluar (Exit)
 Menghentikan dan keluar dari program.
+
+## Struktur Project
+
+<img width="663" height="840" alt="image" src="https://github.com/user-attachments/assets/0590ff3b-c044-48bd-ab73-f9f91347efed" />
+
+1. com.mycompany.bankapp.model (Layer Model - Entitas JPA)
+Layer ini sekarang bertanggung jawab atas data dan mapping ke database.
+
+- Nasabah.java: Ini adalah Abstract Entity (@Entity, @Inheritance). Atribut mutasiRekening (lama) telah diganti dengan relasi @OneToMany ke TransaksiEntry, dilengkapi CascadeType.ALL untuk menghapus mutasi saat nasabah dihapus.
+- NasabahBiasa.java & NasabahPrioritas.java: Ini adalah Subclass Entitas yang menggunakan @DiscriminatorValue untuk memetakan diri ke tabel nasabah (Single Table Inheritance).
+- Transaksi.java: Interface (Kontrak) yang mendefinisikan method transaksi.
+- TransaksiEntry.java: Entitas Baru (@Entity, @ManyToOne) yang bertindak sebagai log mutasi persisten.
+
+2. com.mycompany.bankapp.repository (Layer Repository - Data Access Layer)
+Layer ini adalah jembatan ORM yang baru, menyediakan akses data terstruktur.
+
+- NasabahRepository.java: Ini adalah Interface Repository yang mendefinisikan semua method CRUD berbasis objek, termasuk method findAllWithJdbc() untuk laporan murni.
+- NasabahRepositoryImpl.java: Ini adalah implementasi yang menggunakan EntityManager untuk operasi ORM (Save, Find, Delete) dan code JDBC Murni untuk method pelaporan.
+
+3. com.mycompany.bankapp.service (Layer Service/Controller)
+Layer ini tetap menjadi pusat logika bisnis, tetapi kini beroperasi di atas Repository.
+
+- Berisi Class: BankService.java.
+- Logika Bisnis: Semua logika CRUD sekarang dipanggil melalui NasabahRepository. Constructor-nya telah diperbaiki untuk membaca nomor rekening terbesar dari database (findMaxNomorRekening()) saat startup, menyelesaikan masalah duplikasi counter yang persisten.
+- Fungsi Utama: Bertindak sebagai controller yang menghubungkan Model (melalui Repository) dengan Tampilan (View).
+
+4. com.mycompany.bankapp.util (Layer Utilitas Koneksi)
+Ini adalah folder baru yang menampung helper class untuk koneksi database.
+
+- DbManager.java: Helper koneksi JDBC Murni yang menyediakan method getConnection() langsung ke MySQL.
+- JpaUtil.java: Helper JPA/Hibernate yang menginisialisasi dan mengelola EntityManagerFactory (membaca persistence.xml).
+- ReportGenerator.java: Helper untuk menampilkan laporan dengan JDBC Murni (menggunakan DbManager).
+
+5. com.mycompany.bankapp.view (Layer View)
+Berisi Class: Main.java.
+- Perubahan Fungsi: menyajikan antarmuka konsol dengan sepuluh menu utama yang berfungsi sebagai pusat kendali program, di mana Menu 1 hingga 4 didedikasikan untuk operasi manajemen data dasar nasabah (tambah, lihat, ubah, hapus). Menu 5 membuka sub-menu untuk seluruh transaksi finansial yang setiap aksinya memicu pencatatan log mutasi ke database, diikuti Menu 6 (Lihat Mutasi) dan Menu 7 (Cari Nasabah) sebagai utility query. Menu 8 adalah logic bonus bunga, dan implementasi Menu 9 (Tampilkan Laporan JDBC) berfungsi memvalidasi koneksi low-level ke database dengan menampilkan data melalui JDBC Murni; sementara itu, pada opsi Keluar (Menu 10), program secara eksplisit memastikan pemanggilan JpaUtil.closeFactory() untuk memutuskan koneksi Hibernate secara aman sebelum menutup aplikasi.
+
+## Letak Penerapan ORM
+
+### 1. Nasabah.java
+
+<img width="908" height="91" alt="image" src="https://github.com/user-attachments/assets/a5056091-52ce-40a4-8fe8-13887d9a45b7" />
+
+<img width="662" height="42" alt="image" src="https://github.com/user-attachments/assets/bda4de4d-3efd-4c9e-968b-5eaa09fefae8" />
+
+<img width="863" height="19" alt="image" src="https://github.com/user-attachments/assets/32772747-5906-4dde-9f9a-d7a5b1bfac9c" />
+
+<img width="963" height="25" alt="image" src="https://github.com/user-attachments/assets/50e9d1be-f389-40c1-8d96-4a902b596437" />
+
+Sebagai : Entity dan Mappping Utama  
+- Didefinisikan dengan @Entity, @Table, dan @Inheritance. Menggunakan @OneToMany untuk relasi ke TransaksiEntry, dengan cascade = CascadeType.ALL untuk memastikan mutasi ikut terhapus saat Nasabah dihapus.
+
+### 2. NasabahBiasa.java & NasabahPrioritas.java
+
+<img width="413" height="26" alt="image" src="https://github.com/user-attachments/assets/31a8dd5d-69b8-405a-9ebd-763504702cb6" />
+
+<img width="439" height="21" alt="image" src="https://github.com/user-attachments/assets/567313ce-c65c-4629-9da2-a999cf583de7" />
+
+Sebagai : Subclass Entitas  
+- Menggunakan @DiscriminatorValue untuk memetakan subclass ke kolom JENIS pada tabel tunggal (nasabah), mengikuti strategi InheritanceType.SINGLE_TABLE.
+
+### 3. TransaksiEntry.java
+
+<img width="210" height="32" alt="image" src="https://github.com/user-attachments/assets/0494b674-4645-44e4-be4b-e93cc1d8a580" />
+
+<img width="652" height="49" alt="image" src="https://github.com/user-attachments/assets/dac2fea3-d5fa-4115-b4b0-39d2ffd4ca7c" />
+
+Sebagai :  Entity Relasi 
+- enggunakan @Entity dan @ManyToOne dengan @JoinColumn(name = "nasabah_id"), mendefinisikan kolom, tipe data, dan relasi Foreign Key yang dikelola oleh JPA.
+
+### 4. NasabahRepositoryImpl.java
+
+<img width="547" height="72" alt="image" src="https://github.com/user-attachments/assets/1a003cf3-1030-47be-9f4b-eb5b90cd15cd" />
+
+<img width="894" height="34" alt="image" src="https://github.com/user-attachments/assets/32eea938-d0b3-4821-9361-c805567920ce" />
+
+<img width="1086" height="14" alt="image" src="https://github.com/user-attachments/assets/f4235cea-f748-47c6-8768-8390badaaf8f" />
+
+<img width="659" height="33" alt="image" src="https://github.com/user-attachments/assets/0df8ce56-b4ec-462c-9451-296794e636f9" />
+
+Sebagai : Implementasi Repository (Inti JPA)
+- Semua method CRUD standar (save, delete, findAll, findByNomorRekening, findByNamaContainingIgnoreCase) diimplementasikan menggunakan EntityManager dari JpaUtil untuk berinteraksi dengan database melalui objek Java, bukan SQL.
+
+### 5. JpaUtil.java
+
+<img width="805" height="25" alt="image" src="https://github.com/user-attachments/assets/b658efb0-3ed1-4aff-ae41-4ef2a1e785a4" />
+
+<img width="960" height="32" alt="image" src="https://github.com/user-attachments/assets/cf5f9ef1-eee1-48b4-9e33-a81087359d36" />
+
+<img width="539" height="31" alt="image" src="https://github.com/user-attachments/assets/c40a26eb-ed06-4601-aba1-7fa4fd8031f4" />
+
+Sebagai : Inisialisasi JPA/Hibernate
+- Menyediakan method statis getEntityManager() yang bertanggung jawab untuk membuat dan mengelola EntityManagerFactory dari unit persistensi yang didefinisikan di persistence.xml.
+
+### BankService.java
+
+<img width="1163" height="39" alt="image" src="https://github.com/user-attachments/assets/37abdff8-9943-4313-b0a8-1883f05543d0" />
+
+<img width="727" height="31" alt="image" src="https://github.com/user-attachments/assets/1aec7127-741c-4c4b-a71a-ba13103efe3d" />
+
+<img width="619" height="34" alt="image" src="https://github.com/user-attachments/assets/d3af4653-1042-4422-9256-219d6c364f6d" />
+
+Sebagai : Transaction & Query JPQL
+- Method lihatMutasiRekening() menggunakan JPQL (Java Persistence Query Language): SELECT t FROM TransaksiEntry t WHERE t.nasabah.id = :nasabahId... untuk mengambil daftar mutasi berdasarkan ID Nasabah.
+
+## Letak Penerapan JDBC
+
+### 1. DbManager.java
+
+<img width="747" height="33" alt="image" src="https://github.com/user-attachments/assets/0f579374-8320-4055-91c4-1cb483b03a54" />
+
+Membuat objek Connection (koneksi fisik) yang merupakan dasar dari semua operasi JDBC.
+
+### 2. NasabahRepositoryImpl.java
+
+<img width="1027" height="32" alt="image" src="https://github.com/user-attachments/assets/cf52eaff-db7e-45aa-94c6-6c0d11545015" />
+
+Blok code yang menggunakan API java.sql.* untuk menjalankan raw query SQL (SELECT...).
+
+<img width="708" height="23" alt="image" src="https://github.com/user-attachments/assets/aeecd986-7ebb-4b41-978d-d99c2c424df9" />
+
+Memproses hasil query SQL secara manual dari ResultSet.
+
+### 3. BankService.java
+
+<img width="771" height="39" alt="image" src="https://github.com/user-attachments/assets/535fd84f-0ee1-445e-b6a7-07aee482afe6" />
+
+Memanggil implementasi JDBC murni dari Repository untuk mendapatkan data yang kemudian ditampilkan.
+
+### 4. Main.java
+
+<img width="831" height="54" alt="image" src="https://github.com/user-attachments/assets/2f83c213-3609-43c2-bc78-08f1378e74cf" />
+
+Titik masuk yang diakses pengguna untuk menjalankan fungsionalitas pelaporan JDBC murni.
+
+### 5. JpaUtil.java
+
+<img width="978" height="30" alt="image" src="https://github.com/user-attachments/assets/f8cdf19e-4b96-4e34-aded-b184c83a9dbb" />
+
+Meskipun ini JPA, ia menginisialisasi provider yang di dalamnya memuat driver JDBC yang sama untuk koneksi ORM.
+
+# Konfigurasi Sistem (Persistence & Build)
+
+### persistence.xml
+
+Pusat Kendali JPA/JDBC. Mendefinisikan persistence-unit (BankAppUnit), mendaftarkan semua class Entitas, dan menyediakan properties koneksi JDBC (jakarta.persistence.jdbc.url) yang digunakan oleh Hibernate.
+
+### pom.xml
+
+Manajemen Dependency. Deklarasi hibernate-core, jakarta.persistence-api, dan mysql-connector-java yang menyediakan semua library ORM dan JDBC yang dibutuhkan aplikasi.
+
+# Database
+
+### Tables
+
+<img width="455" height="254" alt="image" src="https://github.com/user-attachments/assets/bce0c2f0-b696-422d-b298-bba99299de0a" />
+
+Gambar yang menunjukkan hasil query show tables dari XAMPP Shell, struktur database ini adalah bukti kunci bahwa migrasi ORM (JPA/Hibernate) Anda telah berhasil diselesaikan. Struktur tersebut mengonfirmasi adanya dua tabel utama yang saling terkait: nasabah (berfungsi sebagai tabel induk/parent yang menyimpan data dasar akun dan mendukung inheritance untuk NasabahBiasa/NasabahPrioritas) dan transaksi_entry (berfungsi sebagai tabel anak/child yang mencatat seluruh log mutasi keuangan). Keberadaan kedua tabel ini memvalidasi bahwa telah berhasil memindahkan semua logic dan data storage dari ArrayList di memori ke Persistence Layer yang terstruktur, aman, dan siap untuk operasi CRUD yang diotomatisasi.
+### nasabah
+
+<img width="933" height="299" alt="image" src="https://github.com/user-attachments/assets/6bfa7026-2628-4d99-964e-a0148635968a" />
+
+Tabel nasabah ini adalah representasi utama dari entitas Nasabah di database Anda, mengonfirmasi keberhasilan mapping JPA/ORM. Struktur ini mendukung Single Table Inheritance yang mana kolom JENIS (VARCHAR(31), NOT NULL) berfungsi sebagai discriminator untuk membedakan antara NasabahBiasa dan NasabahPrioritas. Kolom id (BIGINT, PRIMARY KEY) adalah kunci utama yang di-generasi otomatis oleh database, sementara nomor_rekening (VARCHAR(15), UNIQUE) menjamin bahwa setiap akun nasabah memiliki identitas yang unik.
+
+<img width="1116" height="714" alt="image" src="https://github.com/user-attachments/assets/21cd0766-4ac6-452c-9da3-0389e28a6a65" />
+
+ Berdasarkan gambar yang menunjukkan hasil query SELECT * FROM nasabah dari database MariaDB/MySQL, data ini adalah bukti visual langsung yang memvalidasi keberhasilan seluruh proses migrasi ORM dan logic counter Anda. Tabel ini mengonfirmasi bahwa data awal (baris 1-20) dan data baru yang ditambahkan oleh aplikasi Java (angie nji di baris 43, oline di baris 44, dan lin di baris 45) semuanya berhasil tersimpan dan dimuat oleh Hibernate, sementara kolom JENIS memvalidasi penggunaan Polimorfisme Data (Inheritance Mapping) di mana PRIORITAS dan BIASA disimpan dalam satu tabel tunggal. Kolom saldo menunjukkan nilai uang yang akurat setelah transaksi (termasuk update bunga yang terakumulasi), dan counter otomatis telah melewati nomor 2025023 untuk menghindari error duplikasi yang persisten, menandakan startup logic aplikasi kini stabil dan berfungsi.
+
+### transaksi_entry
+
+<img width="956" height="314" alt="image" src="https://github.com/user-attachments/assets/bb05d670-6c18-4f05-bd84-78a1b8d33c9a" />
+
+Tabel transaksi_entry adalah immutable log (jurnal) yang merekam seluruh riwayat mutasi keuangan aplikasi, mengonfirmasi keberhasilan refactoring logic mutasi ke persistence layer. Struktur ini secara eksplisit mendukung kebutuhan akuntansi dengan kolom id sebagai Primary Key dan nasabah_id (BIGINT, MUL) sebagai Foreign Key yang mengikat setiap transaksi secara wajib ke entitas induk di tabel nasabah. Kolom jenis_transaksi dan tipe_pergerakan (VARCHAR, NOT NULL) secara bersamaan menyimpan kategori transaksi (misalnya, SETOR) dan arah pergerakan saldo (KREDIT/DEBIT), yang sangat penting untuk memastikan integritas dan akurasi historis data keuangan.
+
+<img width="1269" height="871" alt="image" src="https://github.com/user-attachments/assets/d5d1c71b-61a7-4b22-a44b-bb6b6385c8ca" />
+
+Tabel transaksi_entry berfungsi sebagai jurnal transaksi digital (Immutable Log) proyek ini. Gambar ini adalah bukti langsung dari keberhasilan implementasi persistence melalui JPA/Hibernate, mengonfirmasi bahwa seluruh logika transaksi di Service Layer dan Model Layer sudah tersimpan secara benar di database.
 
 ##  Letak penerapan Abstraction (class/interface)
 
@@ -123,33 +303,6 @@ Penggunaan anotasi @Override memastikan bahwa compiler memverifikasi bahwa signa
 
 - Polimorfisme ini memungkinkan method seperti tampilkanSemuaNasabah() di BankService untuk memanggil n.tampilkanInfo() pada setiap objek Nasabah (baik yang merupakan NasabahBiasa maupun NasabahPrioritas) dalam daftar, dan JVM secara otomatis menjalankan versi method yang benar sesuai dengan jenis objeknya.
 
-## Struktur Project
-
-<img width="411" height="224" alt="image" src="https://github.com/user-attachments/assets/01459cc6-ca82-4594-8004-51885696b819" />
-
-1. com.mycompany.bankapp.model (Layer Model)
-
-Layer ini bertanggung jawab penuh atas data dan aturan inti sistem perbankan.
-- Nasabah.java: Ini adalah superclass yang mendefinisikan atribut umum nasabah (nomorRekening, nama, saldo, mutasiRekening) dan menerapkan Enkapsulasi melalui setter dan getter.
-- NasabahBiasa.java & NasabahPrioritas.java: Ini adalah subclass yang menerapkan Inheritansi dari Nasabah dan melakukan overriding pada method penting seperti biayaTransfer dan tampilkanInfo.
-- Transaksi.java: Ini adalah sebuah Interface yang mendefinisikan kontrak (seperangkat aturan) untuk semua method yang berhubungan dengan kegiatan perbankan seperti setor, tarik, dan transfer.
-
-2. com.mycompany.bankapp.service (Layer Service/Controller)
-   
-Layer ini berisi seluruh logika bisnis dan operasional sistem.
-- Berisi Class: BankService.java.
-- Logika Bisnis: Menyimpan seluruh logika CRUD (Create, Read, Update, Delete). Ini juga mengatur fitur transaksi (Setor, Tarik, Transfer), mutasi rekening, dan pencarian data.
-- Validasi: Mengatur alur program, termasuk validasi input nominal dan saldo minimum, serta penentuan biaya admin bulanan yang berbeda berdasarkan jenis nasabah.
-- Fungsi Utama: Bertindak sebagai controller yang menghubungkan data (model) dengan tampilan (view)
-
-3. com.mycompany.bankapp.view (Layer View)
-   
-Layer ini bertanggung jawab atas interaksi dengan pengguna melalui console.
-- Berisi Class: Main.java.
-- Interaksi Pengguna: Menyediakan menu interaktif berupa pilihan 1-8 yang dapat diakses oleh pengguna.
-- Penanganan Input: Menangani input pengguna, termasuk validasi angka atau non-angka, dan memanggil method dari BankService.
-- Fungsi Utama: Menjadi antarmuka pengguna (UI) berbasis console untuk menjalankan program.
-
 ## Penerapan OOP
 - **Encapsulation**  
   Semua atribut Nasabah bersifat private dengan akses melalui **getter & setter**.
@@ -161,9 +314,9 @@ Layer ini bertanggung jawab atas interaksi dengan pengguna melalui console.
 # Output Program/Dokumentasi Program
 ## Menu Program
 
-<img width="345" height="228" alt="image" src="https://github.com/user-attachments/assets/d07e6d64-e02d-4c0a-abf2-5c8f99967316" />
+<img width="489" height="285" alt="image" src="https://github.com/user-attachments/assets/a0b09799-abf9-4a85-ae66-716725ad0141" />
 
-Program ini berjalan dengan menampilkan delapan menu utama kepada pengguna. Opsi 1 sampai 4 digunakan untuk mengelola data dasar nasabah (tambah, lihat, ubah, hapus). Menu 5 membuka sub-menu untuk transaksi finansial, sementara menu 6 dan 7 berfungsi untuk melihat riwayat rekening dan mencari data nasabah. Program akan selalu kembali ke tampilan menu ini setelah setiap tugas selesai, hingga pengguna memilih menu 8 untuk keluar.
+Program ini berjalan dengan menampilkan sepuluh menu utama kepada pengguna. Opsi 1 sampai 4 digunakan untuk mengelola data dasar nasabah (tambah, lihat, ubah, hapus). Menu 5 membuka sub-menu untuk transaksi finansial, menu 6 berfungsi untuk melihat riwayat rekening, dan menu 7 digunakan untuk mencari data nasabah secara fleksibel. Menu 8 diterapkan untuk memberikan bonus bunga kepada nasabah prioritas, dan Menu 9 dirancang secara khusus untuk menampilkan laporan seluruh data nasabah menggunakan koneksi JDBC Murni. Program akan selalu kembali ke tampilan menu ini setelah setiap tugas selesai, hingga pengguna memilih Menu 10 untuk keluar dari aplikasi dan menutup koneksi database.
 
 
 <img width="372" height="322" alt="image" src="https://github.com/user-attachments/assets/d1b7dc74-b162-48cc-855a-b6aea122cf79" />
@@ -178,7 +331,7 @@ Output tersebut menunjukkan interaksi saat mencoba menambahkan nasabah baru. Pro
 
 ## Menu Read (Tampilkan Nasabah)
 
-<img width="718" height="142" alt="image" src="https://github.com/user-attachments/assets/718e1f77-1b43-4ee6-a69a-d2251e7e78cb" />
+<img width="1055" height="554" alt="Screenshot 2025-10-09 080353" src="https://github.com/user-attachments/assets/c98a2b27-1544-47f0-9154-dd1fa165e292" />
 
 Pada menu **Tampilkan Nasabah**, program akan menampilkan seluruh data nasabah yang tersimpan dalam daftar, meliputi nomor rekening, nama, dan saldo masing-masing nasabah secara berurutan (contoh: REK2025001 atas nama Budi Santoso, REK2025002 atas nama Citra Lestari, dan REK2025003 atas nama Angie). Setelah data ditampilkan, pengguna diminta menekan Enter untuk kembali ke menu utama.
 
@@ -273,7 +426,7 @@ Alur ini menunjukkan penanganan input yang tidak valid di dalam sub-menu transak
 
 <img width="809" height="157" alt="image" src="https://github.com/user-attachments/assets/357158c4-f0e2-4f7f-a53f-14f2c83cf894" />
 
-Output ini memperlihatkan bahwa pengguna memilih menu 6 untuk melihat mutasi rekening dengan nomor 2025001. Program mengenali bahwa nasabah ini adalah nasabah biasa dan secara otomatis memotong biaya administrasi bulanan sebesar Rp5.000,00, karena ini adalah kali pertama mutasi dilihat di bulan September 2025. Setelah pemotongan, saldo awal Rp500.000,00 berkurang menjadi Rp495.000,00, dan mutasi tersebut dicatat dalam riwayat rekening nasabah.
+Output mutasi ini memvalidasi keberhasilan integrasi Persistence Layer yang telah dimigrasikan. Saat pengguna memilih Menu 6, method lihatMutasiRekening() mengeksekusi kueri JPQL terhadap entitas TransaksiEntry untuk mengambil seluruh riwayat transaksi nasabah 2025001. Data yang ditampilkan membuktikan fungsionalitas transaksional penuh sistem, mencakup transaksi BUNGA (+Rp280,500), SETOR (+Rp100,000), TARIK (-Rp100,000), dan TRANSFER_KELUAR (termasuk biaya Rp0.0), yang semuanya tersimpan secara kronologis di database dan disajikan sebagai bukti log mutasi yang terstruktur.
 
 <img width="909" height="157" alt="image" src="https://github.com/user-attachments/assets/f703dbc2-6d65-4f3c-9ead-45f206b84f0c" />
 
@@ -295,11 +448,17 @@ Alur ini menunjukkan hasil pencarian jika data tidak ditemukan. Ketika pengguna 
 
 ## Menu Bonus Untuk Nasabah Prioritas
 
-<img width="822" height="58" alt="image" src="https://github.com/user-attachments/assets/46350740-71ba-406e-8bbc-ba01256cc84b" />
+<img width="770" height="534" alt="Screenshot 2025-10-09 070936" src="https://github.com/user-attachments/assets/a7f99d9c-6f52-4b98-8a55-ca9c9d551338" />
 
-Ketika pengguna memilih menu 8, program akan mencari semua nasabah dengan kategori Prioritas. Pada contoh di atas, ditemukan nasabah Citra Lestari yang memiliki saldo Rp1.200.000. Sistem kemudian menghitung bonus berupa 2% dari saldo saat ini, yaitu Rp24.000. Bonus tersebut otomatis ditambahkan ke saldo, sehingga saldo baru menjadi Rp1.224.000. Mutasi rekening juga mencatat transaksi ini sebagai “Bunga tabungan: +Rp24000”.
+Fitur Bonus untuk Nasabah Prioritas (Menu 8) ini memvalidasi logic transaksional penting pada lapisan Service dan Model. Program secara otomatis mengambil semua entitas NasabahPrioritas dari database via ORM, menghitung bonus bunga sebesar 2% dari saldo saat ini (misalnya, Citra Lestari menerima Rp289,832), dan menambahkan bonus tersebut ke saldo utama (update transaksional). Proses ini juga secara eksplisit memanggil method n.catat("BUNGA", ...) untuk mencatat transaksi ini ke tabel transaksi_entry, menegaskan keberhasilan Polymorphism (eksekusi logic yang berbeda berdasarkan tipe nasabah) dan integritas data write ke database.
 
 Dengan cara ini, fitur bonus menegaskan perbedaan layanan antara Nasabah Biasa dan Nasabah Prioritas, karena hanya prioritas yang mendapat tambahan saldo otomatis. Ini sesuai konsep bank digital yang memberikan benefit khusus bagi nasabah premium.
+
+## Menu Tampilkan Laporan (JDBC)
+
+<img width="995" height="654" alt="image" src="https://github.com/user-attachments/assets/902bef11-e91b-47a1-b171-53e27476adef" />
+
+Output tersebut menampilkan fitur Tampilkan Laporan (JDBC Murni), yang merupakan validasi keberhasilan implementasi low-level akses data pada aplikasi. Laporan ini menunjukkan daftar lengkap data nasabah, diambil secara langsung dari database MySQL melalui raw query SQL, yang membuktikan koneksi JDBC Murni berfungsi secara independen dari framework ORM. Data yang ditampilkan dikategorikan berdasarkan Nomor Rekening, Nama, Saldo, dan Jenis nasabah, memperlihatkan pemetaan yang akurat antara data tersimpan dan output yang diformat.
 
 ## Menu Exit (Keluar)
 

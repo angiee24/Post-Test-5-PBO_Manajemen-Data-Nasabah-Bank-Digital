@@ -1,4 +1,4 @@
-<img width="413" height="26" alt="image" src="https://github.com/user-attachments/assets/9cbb65c2-67f8-4dcd-ab5e-1be438b17c13" /># Post Test 4-PBO Manajemen-Data-Nasabah-Bank-Digital
+# Post Test 4-PBO Manajemen-Data-Nasabah-Bank-Digital
 
 # Manajemen Data Nasabah Bank Digital
 
@@ -104,6 +104,7 @@ Sebagai : Subclass Entitas
 ### 3. TransaksiEntry.java
 
 <img width="210" height="32" alt="image" src="https://github.com/user-attachments/assets/0494b674-4645-44e4-be4b-e93cc1d8a580" />
+
 
 <img width="652" height="49" alt="image" src="https://github.com/user-attachments/assets/dac2fea3-d5fa-4115-b4b0-39d2ffd4ca7c" />
 
